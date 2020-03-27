@@ -11,21 +11,27 @@ export default function Detail() {
   const route = useRoute()
 
   const incident = route.params.incident
-  const message = 'Olá APAD , Estou entrando em contato pois minha cadelinha sofreu um acindente, podem me ajudar?'
+  const message = `Olá ${incident.name}, estrou entrando em contato pois gostaria de ajudar no caso "${
+    incident.title
+  }" com o valor de ${Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(incident.value)}`
+
   function navigateBack() {
     navigation.goBack()
   }
 
   function sendMail() {
     MailComposer.composeAsync({
-      subject: 'Herói do caso: Cadelinha atropelada',
-      recipients: ['baroquedo1997@gmail.com'],
+      subject: `Herói do caso: ${incident.title}`,
+      recipients: [incident.email],
       body: message
     })
   }
 
   function sendWhatsapp() {
-    Linking.openURL(`whatsapp://send?phone="+5511959782238"&text=${message}`)
+    Linking.openURL(`whatsapp://send?phone=${incident.whatsapp}&text=${message}`)
   }
 
   return (

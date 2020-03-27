@@ -8,21 +8,35 @@ import styles from './styles'
 
 export default function Incidents() {
   const [incidents, setIncidents] = useState([])
-  const [Total, setTotal] = useState(0)
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(false)
 
   const navigation = useNavigation()
 
   function navigateToDetail(incident) {
     navigation.navigate('Detail', { incident })
   }
+  async function loadIncidents() {
+    if (loading) {
+      return
+    }
+
+    if (total > 0 && incidents.lenght === total) {
+      return
+    }
+    setLoading(true)
+
+    const response = await api.get('incidents', {
+      params: { page }
+    })
+    setIncidents([...incidents, ...response.data])
+    setTotal(response.headers['x-total-count'])
+    setPage(page + 1)
+    setLoading(false)
+  }
 
   useEffect(() => {
-    async function loadIncidents() {
-      const response = await api.get('incidents')
-
-      setIncidents(response.data)
-      setTotal(response.headers['x-total-count'])
-    }
     loadIncidents()
   }, [])
   return (
@@ -30,7 +44,7 @@ export default function Incidents() {
       <View style={styles.header}>
         <Image source={logoImg} />
         <Text style={styles.headerText}>
-          Total de <Text style={styles.headerTextBold}>{Total} casos.</Text>
+          Total de <Text style={styles.headerTextBold}>{total} casos.</Text>
         </Text>
       </View>
       <Text style={styles.title}> Bem-vindo </Text>
@@ -38,6 +52,8 @@ export default function Incidents() {
       <FlatList
         style={styles.incidentList}
         data={incidents}
+        onEndReached={loadIncidents}
+        onEndReachedThreshold={0.2}
         keyExtractor={incident => String(incident.id)}
         showsVerticalScrollIndicator={false}
         renderItem={({ item: incident }) => (
